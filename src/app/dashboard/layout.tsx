@@ -21,6 +21,12 @@ const links = [
   { name: "menu bar", href: "menu-bar" },
   { name: "input otp", href: "input-otp" },
   { name: "progress", href: "progress" },
+  { name: "sheet", href: "sheet" },
+  { name: "skeleton", href: "skeleton" },
+  { name: "slider", href: "slider" },
+  { name: "sonner", href: "sonner" },
+  { name: "toast", href: "toast" },
+  { name: "tabs", href: "tabs" },
 ].sort((a, b) => a.name.localeCompare(b.name));
 
 export default function DashboardLayout({
