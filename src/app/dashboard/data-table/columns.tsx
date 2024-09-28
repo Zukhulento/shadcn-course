@@ -2,7 +2,7 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Payment } from "@/data/payments.data";
-import { ColumnDef, SortDirection } from "@tanstack/react-table";
+import { ColumnDef, FilterFn, Row, SortDirection } from "@tanstack/react-table";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,9 +12,59 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { ChevronDownIcon, DotsHorizontalIcon } from "@radix-ui/react-icons";
 import { toast } from "sonner";
 import { ChevronUpIcon } from "lucide-react";
+
+const myCustomFilterFn: FilterFn<Payment> = (
+  row: Row<Payment>,
+  columnId: string,
+  filterValue: string,
+  addMeta: (meta: any) => void
+) => {
+  // Obteniendo valores de filtro
+  filterValue = filterValue.toLowerCase();
+  const filterParts = filterValue.split(" ");
+  // Agregando validaciones personalizadas
+  // ? Versión 1
+  // const matchs = filterParts.map((part) => {
+  //   if (row.original.email.includes(part)) {
+  //     return true;
+  //   }
+  //   if (row.original.clientName.includes(part)) {
+  //     return true;
+  //   }
+  //   if (row.original.status.includes(part)) {
+  //     return true;
+  //   }
+  // })
+  // // console.log(matchs)
+  // const valid = matchs.every(value => value === true)
+  // return valid
+  
+  // ? Versión 2 
+  // ! En esta versión por cada espacio se hace una busqueda en todas las columnas y retorna combinaciones
+  const rowValues =
+    `${row.original.email} ${row.original.clientName} ${row.original.status}`.toLowerCase();
+  return filterParts.every((part) => rowValues.includes(part));
+
+  // ? Versión para una sola columna
+  // Filtrando por email
+  // if (row.original.email.includes(filterValue)) {
+  //   return true;
+  // }
+  // // Filtrando por nombre
+  // if (row.original.clientName.includes(filterValue)) {
+  //   return true;
+  // }
+  // // Filtrando por status
+  // if (row.original.status.includes(filterValue)) {
+  //   return true;
+  // }
+
+  // return false;
+};
 
 const SortedIcon = ({ isSorted }: { isSorted: SortDirection | false }) => {
   if (isSorted === "asc") return <ChevronUpIcon className="h-4 w-4" />;
@@ -27,12 +77,33 @@ const SortedIcon = ({ isSorted }: { isSorted: SortDirection | false }) => {
 
 export const columns: ColumnDef<Payment>[] = [
   {
+    id: "select",
+    header: ({ table }) => (
+      <Checkbox
+        checked={
+          table.getIsAllPageRowsSelected() ||
+          (table.getIsSomePageRowsSelected() && "indeterminate")
+        }
+        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+        aria-label="Select all"
+      />
+    ),
+    cell: ({ row }) => (
+      <Checkbox
+        checked={row.getIsSelected()}
+        onCheckedChange={(value) => row.toggleSelected(!!value)}
+        aria-label="Select row"
+      />
+    ),
+    enableSorting: false,
+    // enableHiding: false,
+  },
+  {
     accessorKey: "clientName",
     header: ({ column }) => (
       <Button
         variant="ghost"
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-
       >
         Client Name
         <SortedIcon isSorted={column.getIsSorted()} />
@@ -98,6 +169,7 @@ export const columns: ColumnDef<Payment>[] = [
 
   {
     accessorKey: "email",
+    filterFn: myCustomFilterFn,
     header: ({ column }) => {
       return (
         <Button
@@ -139,6 +211,5 @@ export const columns: ColumnDef<Payment>[] = [
         </DropdownMenu>
       );
     },
-    
   },
 ];
